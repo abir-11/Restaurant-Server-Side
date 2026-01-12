@@ -29,7 +29,7 @@ async function run() {
     const db=client.db("restaurantDB");
     const usersCollection=db.collection("users");
     const foodDishesCollection=db.collection("foodDishes");
-
+    const bookTableCollection=db.collection("bookTable");
   //users api
   app.get('/users',async(req,res)=>{
     const users=await usersCollection.find().toArray();
@@ -38,19 +38,49 @@ async function run() {
   })
   app.post('/users',async(req,res)=>{
     const newUser=req.body;
+    newUser.role="customer";
+    newUser.createdAt=new Date();
+    const email=newUser.email;
+    const useExists=await usersCollection.findOne({email});
+
+    if(useExists){
+      return res.status(400).send({message:"User already exists"});
+    }
+
     const result=await usersCollection.insertOne(newUser);
     res.send(result);
   })
+  app.get('/users/:email',async(req,res)=>{
+    const email=req.params.email;
+    const user=await usersCollection.findOne({email});
+    res.send(user);
+    
+  });
   //foodDishes api
   app.get('/foodDishes',async(req,res)=>{
     const foodDishes=await foodDishesCollection.find().toArray();
     res.send(foodDishes);
+});
+app.get('/latestFoodDishes',async(req,res)=>{
+  const latestFoodDishes=await foodDishesCollection.find().sort({createdAt:-1}).limit(4).toArray();
+  res.send(latestFoodDishes);
 });
 app.post('/foodDishes',async(req,res)=>{
     const newFoodDish=req.body;
     const result=await foodDishesCollection.insertOne(newFoodDish);
     res.send(result);
 });
+
+//bookTable api
+app.get('/bookTable',async(req,res)=>{
+     const bookings=await bookTableCollection.find().toArray();
+     res.send(bookings);
+})
+app.post('/bookTable',async(res,req)=>{
+  const newBooking=req.body;
+  const result=await bookTableCollection.insertOne(newBooking);
+  res.send(result);
+})
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
