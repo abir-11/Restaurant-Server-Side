@@ -85,7 +85,7 @@ async function run() {
       }
     });
 
-    app.patch('/users/role/:email', async (req, res) => {
+    app.patch('/users/:email', async (req, res) => {
       try {
         const email = req.params.email;
         const role = req.body.role;
@@ -113,11 +113,7 @@ async function run() {
     // Delete User API (Admin Only)
     app.delete('/users/:id', async (req, res) => {
       const id = req.params.id;
-
-      // ডাটাবেস কোয়েরি তৈরি করা
       const query = { _id: new ObjectId(id) };
-
-      // ডিলিট অপারেশন
       const result = await usersCollection.deleteOne(query);
 
 
@@ -153,7 +149,7 @@ async function run() {
         res.status(500).send({ message: "Internal server error" });
       }
     });
-    app.get('/foodDishes/:email', async (req, res) => {
+    app.get('/foodDishes/user/:email', async (req, res) => {
       const email = req.params.email;
 
       const foodDishes = await foodDishesCollection.find({ email }).toArray();
