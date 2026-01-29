@@ -131,7 +131,7 @@ async function run() {
     app.get('/foodDishes/:id', async (req, res) => {
       const id = req.params.id;
 
-      
+
       if (!ObjectId.isValid(id)) {
         return res.status(400).send({ error: "Invalid ID format" });
       }
@@ -194,17 +194,17 @@ async function run() {
 
     //bookTable api
     app.get('/bookTable', async (req, res) => {
-    let query = {};
+      let query = {};
 
-    // ১. URL থেকে ইমেইলটা ধরুন
-    if (req.query.customerEmail) {
+      // ১. URL থেকে ইমেইলটা ধরুন
+      if (req.query.customerEmail) {
         query = { customerEmail: req.query.customerEmail };
-    }
+      }
 
-    // ২. সেই query দিয়ে ডাটাবেসে খুঁজুন
-    const result = await bookTableCollection.find(query).toArray();
-    res.send(result);
-});
+      // ২. সেই query দিয়ে ডাটাবেসে খুঁজুন
+      const result = await bookTableCollection.find(query).sort({ createdAt: -1 }).toArray();
+      res.send(result);
+    });
 
     app.post('/bookTable', async (req, res) => {
       try {
@@ -282,7 +282,7 @@ async function run() {
         const result = await bookTableCollection.insertOne({
           ...booking,
           createdAt: new Date(),
-          status: 'confirmed'
+          status: 'pending'
         });
 
         res.send({
@@ -299,13 +299,30 @@ async function run() {
       }
     });
 
+    app.patch('/bookTable/:id', async (req, res) => {
+      const id = req.params.id;
+      const { status } = req.body;
+
+      const query = { _id: new ObjectId(id) };
+
+      const updateDoc = {
+        $set: {
+          status: status,
+          cancelledAt: new Date()
+        }
+      };
+
+      const result = await bookTableCollection.updateOne(query, updateDoc);
+
+      res.send(result);
+    });
 
 
     // Get Bookings (Filter by restaurantEmail if provided)
 
 
     app.get('/bookTable', async (req, res) => {
-      const restaurantEmail = req.query.restaurantEmail; 
+      const restaurantEmail = req.query.restaurantEmail;
       let query = {};
 
       if (restaurantEmail) {
@@ -316,7 +333,7 @@ async function run() {
       res.send(bookings);
     });
 
- 
+
 
 
     // Delete/Reject Booking API
@@ -363,7 +380,7 @@ async function run() {
     app.delete('/restaurantApplications/:id', async (req, res) => {
       const id = req.params.id;
 
-     
+
       const query = { _id: new ObjectId(id) };
 
       const result = await usersCollection.deleteOne(query);
