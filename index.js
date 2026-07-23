@@ -1,18 +1,22 @@
 const express = require('express');
 const cors = require('cors');
-const app = express();
 require('dotenv').config();
-const port = process.env.PORT || 3000
+
+// DNS সমস্যা সমাধান করার জন্য (ECONNREFUSED error ঠেকাতে)
+const dns = require('dns');
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
+const app = express();
+// ফ্রন্টএন্ডের সাথে পোর্ট কনফ্লিক্ট এড়াতে 5000 ব্যবহার করা হলো
+const port = process.env.PORT || 3000; 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-//middleware to parse JSON bodies
+const { parse, addMinutes, isBefore, isAfter } = require('date-fns');
+
+// middleware to parse JSON bodies
 app.use(express.json());
 app.use(cors());
 
-
-const { parse, addMinutes, isBefore, isAfter } = require('date-fns');
-
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cerdjzv.mongodb.net/?appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.cerdjzv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -25,20 +29,23 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+    // Connect the client to the server
     await client.connect();
+    
     const db = client.db("restaurantDB");
     const usersCollection = db.collection("users");
     const foodDishesCollection = db.collection("foodDishes");
     const bookTableCollection = db.collection("bookTable");
-    const restaurantApplication = db.collection('restaurantApplications')
+    const restaurantApplication = db.collection('restaurantApplications');
     const restaurantLayoutCollection = db.collection("restaurantLayouts");
-    //users api
+
+    // ==========================================
+    // USERS API
+    // ==========================================
     app.get('/users', async (req, res) => {
       const users = await usersCollection.find().toArray();
       res.send(users);
-
-    })
+    });
     app.post('/users', async (req, res) => {
       const newUser = req.body;
       newUser.role = "user";
@@ -196,7 +203,7 @@ async function run() {
     app.get('/bookTable', async (req, res) => {
       let query = {};
 
-      // ১. URL থেকে ইমেইলটা ধরুন
+     
       if (req.query.customerEmail) {
         query = { customerEmail: req.query.customerEmail };
       }
