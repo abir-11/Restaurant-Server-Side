@@ -2,12 +2,10 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// DNS সমস্যা সমাধান করার জন্য (ECONNREFUSED error ঠেকাতে)
 const dns = require('dns');
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 const app = express();
-// ফ্রন্টএন্ডের সাথে পোর্ট কনফ্লিক্ট এড়াতে 5000 ব্যবহার করা হলো
 const port = process.env.PORT || 3000; 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { parse, addMinutes, isBefore, isAfter } = require('date-fns');
